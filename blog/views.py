@@ -3,11 +3,15 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Post
+from django.core.paginator import Paginator
+from .models import Post, Comment
 from .forms import PostForm, SignupForm
 
 def home(request):
-    posts = Post.objects.all()
+    all_posts = Post.objects.all()
+    paginator = Paginator(all_posts, 6)
+    page_number = request.GET.get('page')
+    posts = paginator.get_page(page_number)
     return render(request, 'blog/home.html', {'posts': posts})
 
 def post_detail(request, pk):
@@ -54,3 +58,54 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+@login_required
+def post_edit(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if post.author != request.user:
+        messages.error(request, 'You can only edit your own posts!')
+        return redirect('home')
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Post updated successfully!')
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm(instance=post)
+    return render(request, 'blog/post_edit.html', {'form': form, 'post': post})
+
+@login_required
+def post_delete(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if post.author != request.user:
+        messages.error(request, 'You can only delete your own posts!')
+        return redirect('home')
+    if request.method == 'POST':
+        post.delete()
+        messages.success(request, 'Post deleted successfully!')
+        return redirect('home')
+    return render(request, 'blog/post_delete.html', {'post': post})
+
+@login_required
+def post_like(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.user in post.likes.all():
+        post.likes.remove(request.user)
+    else:
+        post.likes.add(request.user)
+    return redirect('post_detail', pk=post.pk)
+
+@login_required
+def post_comment(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            Comment.objects.create(
+                post=post,
+                author=request.user,
+                content=content
+            )
+            messages.success(request, 'Comment added!')
+    return redirect('post_detail', pk=post.pk)
