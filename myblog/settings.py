@@ -12,7 +12,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import cloudinary
-import cloudinary_storage
+import cloudinary.uploader
+import cloudinary.api
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,8 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'cloudinary_storage',
+    'django.contrib.staticfiles',
     'cloudinary',
     'blog',
 ]
@@ -123,17 +124,25 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 import os
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+cloudinary.config(
+    cloud_name = 'dmnmtzjqu',
+    api_key = '167359217658277',
+    api_secret = 'ONEoKxzG_nHOCKmdrXsdo3riE2Q'
+)
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dmnmtzjqu',
-    'API_KEY': '981988792622567',
-    'API_SECRET': 'JQCnBMFGljcaDS2_D46WNZKoiuI',
+    'API_KEY': '167359217658277',
+    'API_SECRET': 'ONEoKxzG_nHOCKmdrXsdo3riE2Q',
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+MEDIA_URL = '/media/'
